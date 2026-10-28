@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lightsaber Duel</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d18;color:#eef5ff;font-family:Arial,sans-serif;text-align:center}
+header{padding:18px}
+h1{margin:4px;color:#73d9ff;letter-spacing:3px}
+p{color:#b8c6d9}
+.arena{height:52vh;min-height:300px;max-height:500px;position:relative;overflow:hidden;background:linear-gradient(#101c39 0%,#253958 58%,#101725 59%,#080b11 100%);border-block:2px solid #324761}
+.stars{position:absolute;inset:0;background-image:radial-gradient(white 1px,transparent 1.5px);background-size:47px 39px;opacity:.35}
+.horizon{position:absolute;left:0;right:0;top:58%;height:2px;background:#6d9ec9;box-shadow:0 0 18px #4da9ff}
+.ground{position:absolute;inset:59% 0 0;background:repeating-linear-gradient(80deg,transparent 0 48px,#243449 49px 50px),repeating-linear-gradient(0deg,transparent 0 36px,#1c2a3d 37px 38px);transform:perspective(180px) rotateX(15deg);transform-origin:top}
+.fighter{position:absolute;bottom:0;width:130px;height:75%;transition:filter .15s}
+.enemy{left:50%;transform:translateX(-50%) scale(.68);transform-origin:bottom;bottom:8%}
+.player{left:50%;transform:translateX(-50%);width:190px;height:43%;bottom:-1%}
+.head{position:absolute;left:36%;top:0;width:28%;height:26%;background:#10141d;border:3px solid #3e536c;border-radius:40% 40% 30% 30%}
+.body{position:absolute;left:16%;top:24%;width:68%;height:58%;background:linear-gradient(90deg,#10141c,#37465b,#10141c);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%)}
+.leg{position:absolute;top:73%;height:30%;width:25%;background:#141b29}
+.leg.l{left:22%;transform:rotate(5deg)}
+.leg.r{right:22%;transform:rotate(-5deg)}
+.saber{position:absolute;width:7px;height:135px;bottom:28%;left:69%;border-radius:8px;background:#75eaff;box-shadow:0 0 7px #fff,0 0 18px #00bfff,0 0 35px #00aaff;transform:rotate(-28deg);transform-origin:bottom;transition:transform .2s}
+.enemy .saber{background:#ff5252;box-shadow:0 0 8px #fff,0 0 20px #ff2525,0 0 35px #ff0000;height:150px;left:65%;bottom:25%;transform:rotate(28deg)}
+.player .head{background:#080b11;border-color:#35445a}
+.player .body{background:linear-gradient(90deg,#080b11,#1e2d42,#080b11)}
+.player .saber{height:175px;bottom:42%;left:70%}
+.flash{filter:brightness(2.5)}
+.meters{max-width:520px;margin:12px auto;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.meter{text-align:left;font-size:13px}
+.track{height:13px;background:#263247;border-radius:8px;overflow:hidden;margin-top:5px}
+.fill{height:100%;width:100%;transition:width .25s}
+.force{background:linear-gradient(90deg,#15baff,#8bf3ff)}
+.health{background:linear-gradient(90deg,#34d17b,#a0ffb5)}
+.controls{max-width:520px;margin:12px auto;padding:0 14px 20px}
+.controls h3{margin:12px 0 8px}
+.buttons{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+button{border:1px solid #526a86;border-radius:10px;background:#17263c;color:white;font-size:16px;padding:13px 17px;cursor:pointer}
+button:active{background:#345478;transform:scale(.97)}
+.attack{border-color:#24b9ee}
+.block{border-color:#55d99b}
+button:disabled{opacity:.4;cursor:not-allowed}
+#message{min-height:42px;padding:8px;color:#8deaff;font-weight:bold}
+#restart{background:#28364a;margin:8px}
+small{color:#8799b1}
+</style>
+</head>
+<body>
+<header>
+<h1>LIGHTSABER DUEL</h1>
+<p>Read your opponent. Strike true. Protect your Force.</p>
+</header>
+
+<div class="arena" id="arena">
+<div class="stars"></div><div class="horizon"></div><div class="ground"></div>
+<div class="fighter enemy" id="enemy">
+<div class="head"></div><div class="body"></div>
+<div class="leg l"></div><div class="leg r"></div><div class="saber" id="enemySaber"></div>
+</div>
+<div class="fighter player" id="player">
+<div class="head"></div><div class="body"></div>
+<div class="leg l"></div><div class="leg r"></div><div class="saber" id="playerSaber"></div>
+</div>
+</div>
+
+<div class="meters">
+<div class="meter">YOUR FORCE <span id="pf">100</span>%
+<div class="track"><div class="fill force" id="pbar"></div></div></div>
+<div class="meter">OPPONENT FORCE <span id="ef">100</span>%
+<div class="track"><div class="fill force" id="ebar"></div></div></div>
+<div class="meter">YOUR HEALTH <span id="ph">100</span>%
+<div class="track"><div class="fill health" id="phbar"></div></div></div>
+<div class="meter">OPPONENT HEALTH <span id="eh">100</span>%
+<div class="track"><div class="fill health" id="ehbar"></div></div></div>
+</div>
+
+<div class="controls">
+<div id="message">Choose an attack or prepare to block.</div>
+<h3>⚔ ATTACK</h3>
+<div class="buttons">
+<button class="attack" onclick="attack('left')">← Left</button>
+<button class="attack" onclick="attack('up')">↑ Overhead</button>
+<button class="attack" onclick="attack('right')">Right →</button>
+</div>
+<h3>🛡 BLOCK</h3>
+<div class="buttons">
+<button class="block" onclick="block('left')">← Left</button>
+<button class="block" onclick="block('up')">↑ Overhead</button>
+<button class="block" onclick="block('right')">Right →</button>
+</div>
+<button id="restart" onclick="restart()">Restart Duel</button>
+<p><small>Correct blocks prevent Force loss. Wrong blocks leave you open.</small></p>
+</div>
+
+<script>
+let playerForce=100,enemyForce=100;
+let playerHealth=100,enemyHealth=100;
+let busy=false,finished=false;
+const $=id=>document.getElementById(id);
+function update(){
+ $('pf').textContent=playerForce;$('ef').textContent=enemyForce;
+ $('ph').textContent=playerHealth;$('eh').textContent=enemyHealth;
+ $('pbar').style.width=playerForce+'%';$('ebar').style.width=enemyForce+'%';
+ $('phbar').style.width=playerHealth+'%';$('ehbar').style.width=enemyHealth+'%';
+}
+function say(text){$('message').textContent=text}
+function animateSaber(id,direction){
+ const saber=$(id);
+ const angles={left:-65,right:65,up:0};
+ saber.style.transform='rotate('+angles[direction]+'deg) scale(1.1)';
+ setTimeout(()=>saber.style.transform='rotate('+(id==='enemySaber'?28:-28)+'deg)',250);
+}
+function endCheck(){
+ if(enemyForce<=0){enemyForce=0;finished=true;say('VICTORY! Your opponent has exhausted their Force.');}
+ else if(playerForce<=0){playerForce=0;finished=true;say('DEFEAT! Your Force is exhausted.');}
+ update();
+}
+function attack(direction){
+ if(busy||finished)return;
+ busy=true;
+ animateSaber('playerSaber',direction);
+ const defended=Math.random()<0.48;
+ const enemyBlock=defended?direction:['left','right','up'][Math.floor(Math.random()*3)];
+ setTimeout(()=>{
+  if(enemyBlock===direction){
+   say('Your opponent blocked your '+direction+' attack! No Force lost.');
+  }else{
+   enemyForce=Math.max(0,enemyForce-16);
+   $('enemy').classList.add('flash');
+   setTimeout(()=>$('enemy').classList.remove('flash'),180);
+   say('Clean hit! Opponent loses 16 Force.');
+  }
+  update();endCheck();busy=false;
+ },250);
+}
+function block(direction){
+ if(busy||finished)return;
+ busy=true;
+ const incoming=['left','right','up'][Math.floor(Math.random()*3)];
+ animateSaber('enemySaber',incoming);
+ setTimeout(()=>{
+  if(direction===incoming){
+   say('Perfect block! You stopped the '+incoming+' attack. No Force lost.');
+  }else{
+   playerForce=Math.max(0,playerForce-16);
+   $('player').classList.add('flash');
+   setTimeout(()=>$('player').classList.remove('flash'),180);
+   say('Wrong direction! Incoming '+incoming+' attack breaks through. You lose 16 Force.');
+  }
+  update();endCheck();busy=false;
+ },250);
+}
+function restart(){
+ playerForce=100;enemyForce=100;playerHealth=100;enemyHealth=100;
+ busy=false;finished=false;update();
+ say('Duel reset. Choose your move.');
+}
+update();
+</script>
+</body>
+</html>
