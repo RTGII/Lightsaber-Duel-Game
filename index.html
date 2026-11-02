@@ -3,162 +3,917 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lightsaber Duel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lightsaber Duel — 3D Prototype</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#080d18;color:#eef5ff;font-family:Arial,sans-serif;text-align:center}
-header{padding:18px}
-h1{margin:4px;color:#73d9ff;letter-spacing:3px}
-p{color:#b8c6d9}
-.arena{height:52vh;min-height:300px;max-height:500px;position:relative;overflow:hidden;background:linear-gradient(#101c39 0%,#253958 58%,#101725 59%,#080b11 100%);border-block:2px solid #324761}
-.stars{position:absolute;inset:0;background-image:radial-gradient(white 1px,transparent 1.5px);background-size:47px 39px;opacity:.35}
-.horizon{position:absolute;left:0;right:0;top:58%;height:2px;background:#6d9ec9;box-shadow:0 0 18px #4da9ff}
-.ground{position:absolute;inset:59% 0 0;background:repeating-linear-gradient(80deg,transparent 0 48px,#243449 49px 50px),repeating-linear-gradient(0deg,transparent 0 36px,#1c2a3d 37px 38px);transform:perspective(180px) rotateX(15deg);transform-origin:top}
-.fighter{position:absolute;bottom:0;width:130px;height:75%;transition:filter .15s}
-.enemy{left:50%;transform:translateX(-50%) scale(.68);transform-origin:bottom;bottom:8%}
-.player{left:50%;transform:translateX(-50%);width:190px;height:43%;bottom:-1%}
-.head{position:absolute;left:36%;top:0;width:28%;height:26%;background:#10141d;border:3px solid #3e536c;border-radius:40% 40% 30% 30%}
-.body{position:absolute;left:16%;top:24%;width:68%;height:58%;background:linear-gradient(90deg,#10141c,#37465b,#10141c);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%)}
-.leg{position:absolute;top:73%;height:30%;width:25%;background:#141b29}
-.leg.l{left:22%;transform:rotate(5deg)}
-.leg.r{right:22%;transform:rotate(-5deg)}
-.saber{position:absolute;width:7px;height:135px;bottom:28%;left:69%;border-radius:8px;background:#75eaff;box-shadow:0 0 7px #fff,0 0 18px #00bfff,0 0 35px #00aaff;transform:rotate(-28deg);transform-origin:bottom;transition:transform .2s}
-.enemy .saber{background:#ff5252;box-shadow:0 0 8px #fff,0 0 20px #ff2525,0 0 35px #ff0000;height:150px;left:65%;bottom:25%;transform:rotate(28deg)}
-.player .head{background:#080b11;border-color:#35445a}
-.player .body{background:linear-gradient(90deg,#080b11,#1e2d42,#080b11)}
-.player .saber{height:175px;bottom:42%;left:70%}
-.flash{filter:brightness(2.5)}
-.meters{max-width:520px;margin:12px auto;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.meter{text-align:left;font-size:13px}
-.track{height:13px;background:#263247;border-radius:8px;overflow:hidden;margin-top:5px}
-.fill{height:100%;width:100%;transition:width .25s}
-.force{background:linear-gradient(90deg,#15baff,#8bf3ff)}
-.health{background:linear-gradient(90deg,#34d17b,#a0ffb5)}
-.controls{max-width:520px;margin:12px auto;padding:0 14px 20px}
-.controls h3{margin:12px 0 8px}
-.buttons{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
-button{border:1px solid #526a86;border-radius:10px;background:#17263c;color:white;font-size:16px;padding:13px 17px;cursor:pointer}
-button:active{background:#345478;transform:scale(.97)}
-.attack{border-color:#24b9ee}
-.block{border-color:#55d99b}
-button:disabled{opacity:.4;cursor:not-allowed}
-#message{min-height:42px;padding:8px;color:#8deaff;font-weight:bold}
-#restart{background:#28364a;margin:8px}
-small{color:#8799b1}
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; overflow: hidden; background: #05070c;
+    color: white; font-family: Arial, sans-serif;
+  }
+  canvas { display: block; }
+  #hud {
+    position: fixed; inset: 0; pointer-events: none;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 20px 26px; z-index: 2;
+    text-shadow: 0 2px 5px #000;
+  }
+  .top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 20px;
+  }
+  .fighter-panel { width: min(34vw, 390px); }
+  .fighter-name {
+    font-size: 15px; letter-spacing: 3px; font-weight: bold;
+    margin-bottom: 7px;
+  }
+  .meter-label {
+    font-size: 10px; letter-spacing: 2px; margin: 7px 0 4px;
+    color: #c7d0dc;
+  }
+  .meter {
+    height: 12px; background: #1b202b; border: 1px solid #647080;
+    overflow: hidden; border-radius: 2px;
+  }
+  .fill { height: 100%; width: 100%; transition: width .16s; }
+  #playerForce { background: linear-gradient(90deg,#00b9ff,#b6f5ff); }
+  #enemyForce { background: linear-gradient(90deg,#ff542e,#ffb35e); }
+  #playerHealth { background: #51d77a; }
+  #enemyHealth { background: #d84b4b; }
+  #centerStatus {
+    text-align: center; font-size: 12px; letter-spacing: 3px;
+    color: #e4eaf2; padding-top: 4px;
+  }
+  #bottom {
+    display: flex; justify-content: space-between; align-items: end;
+    gap: 20px;
+  }
+  #controls {
+    font-size: 11px; line-height: 1.7; color: #d6dce5;
+    background: #080d16bb; padding: 10px 13px;
+    border: 1px solid #66708055; border-radius: 5px;
+  }
+  #controls strong { color: white; }
+  #guardUI { text-align: center; min-width: 190px; }
+  #guardTitle { font-size: 11px; letter-spacing: 3px; margin-bottom: 9px; }
+  #directions {
+    display: grid; grid-template-columns: 52px 52px 52px;
+    grid-template-rows: 43px 43px; gap: 5px; justify-content: center;
+  }
+  .dir {
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #78889b; background: #101927dd;
+    color: #cbd5e2; font-size: 19px; border-radius: 4px;
+  }
+  .dir.active {
+    background: #00a8e0; color: white;
+    border-color: #b8f2ff; box-shadow: 0 0 17px #00bfff;
+  }
+  #up { grid-column: 2; grid-row: 1; }
+  #left { grid-column: 1; grid-row: 2; }
+  #right { grid-column: 3; grid-row: 2; }
+  #guardMode { font-size: 10px; letter-spacing: 2px; margin-top: 8px; }
+  #message {
+    position: fixed; top: 43%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 24px; font-weight: bold; letter-spacing: 4px;
+    text-align: center; color: white; text-shadow: 0 0 18px #00bfff;
+    pointer-events: none; z-index: 4;
+  }
+  #intro {
+    position: fixed; inset: 0; z-index: 5; background: #03060bdc;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 24px;
+  }
+  #introBox {
+    max-width: 540px; border: 1px solid #62758b;
+    background: #0b1320ed; padding: 30px; border-radius: 8px;
+  }
+  #intro h1 { letter-spacing: 5px; font-size: 27px; }
+  #intro p { color: #c4cedb; line-height: 1.6; font-size: 14px; }
+  button {
+    pointer-events: auto; border: 1px solid #8beaff;
+    color: white; background: #087ca5; padding: 13px 28px;
+    font-weight: bold; letter-spacing: 2px; cursor: pointer;
+    border-radius: 4px; margin-top: 10px;
+  }
+  #lockStatus { color: #8ceaff; font-size: 10px; margin-top: 5px; }
+  @media(max-width:650px) {
+    #hud { padding: 12px; }
+    .fighter-panel { width: 42vw; }
+    .fighter-name { font-size: 11px; letter-spacing: 1px; }
+    #controls { font-size: 9px; }
+    #guardUI { min-width: 150px; }
+    #directions { grid-template-columns: 42px 42px 42px; grid-template-rows: 36px 36px; }
+    .dir { font-size: 15px; }
+  }
 </style>
 </head>
 <body>
-<header>
-<h1>LIGHTSABER DUEL</h1>
-<p>Read your opponent. Strike true. Protect your Force.</p>
-</header>
 
-<div class="arena" id="arena">
-<div class="stars"></div><div class="horizon"></div><div class="ground"></div>
-<div class="fighter enemy" id="enemy">
-<div class="head"></div><div class="body"></div>
-<div class="leg l"></div><div class="leg r"></div><div class="saber" id="enemySaber"></div>
-</div>
-<div class="fighter player" id="player">
-<div class="head"></div><div class="body"></div>
-<div class="leg l"></div><div class="leg r"></div><div class="saber" id="playerSaber"></div>
-</div>
+<div id="hud">
+  <div class="top">
+    <div class="fighter-panel">
+      <div class="fighter-name">YOUR FIGHTER</div>
+      <div class="meter-label">FORCE</div>
+      <div class="meter"><div id="playerForce" class="fill"></div></div>
+      <div class="meter-label">HEALTH</div>
+      <div class="meter"><div id="playerHealth" class="fill"></div></div>
+    </div>
+    <div id="centerStatus">
+      LIGHTSABER DUEL<br>
+      <span id="lockStatus">TARGET LOCKED</span>
+    </div>
+    <div class="fighter-panel" style="text-align:right">
+      <div class="fighter-name">OPPONENT</div>
+      <div class="meter-label">FORCE</div>
+      <div class="meter"><div id="enemyForce" class="fill"></div></div>
+      <div class="meter-label">HEALTH</div>
+      <div class="meter"><div id="enemyHealth" class="fill"></div></div>
+    </div>
+  </div>
+
+  <div id="bottom">
+    <div id="controls">
+      <strong>CONTROLLER</strong><br>
+      LEFT STICK — MOVE<br>
+      RIGHT STICK — ATTACK / BLOCK DIRECTION<br>
+      LT — HOLD TO BLOCK<br>
+      RB — FAST ATTACK<br>
+      RT — HEAVY ATTACK<br>
+      A — DODGE &nbsp; X — GUARD BREAK<br>
+      B — LOCK ON &nbsp; Y — SPECIAL<br><br>
+      <strong>KEYBOARD</strong><br>
+      WASD — MOVE &nbsp; ARROWS — DIRECTION<br>
+      Q — BLOCK &nbsp; J — FAST &nbsp; K — HEAVY<br>
+      SPACE — DODGE &nbsp; E — GUARD BREAK
+    </div>
+
+    <div id="guardUI">
+      <div id="guardTitle">DIRECTIONAL GUARD</div>
+      <div id="directions">
+        <div id="up" class="dir">↑</div>
+        <div id="left" class="dir">←</div>
+        <div id="right" class="dir">→</div>
+      </div>
+      <div id="guardMode">READY</div>
+    </div>
+  </div>
 </div>
 
-<div class="meters">
-<div class="meter">YOUR FORCE <span id="pf">100</span>%
-<div class="track"><div class="fill force" id="pbar"></div></div></div>
-<div class="meter">OPPONENT FORCE <span id="ef">100</span>%
-<div class="track"><div class="fill force" id="ebar"></div></div></div>
-<div class="meter">YOUR HEALTH <span id="ph">100</span>%
-<div class="track"><div class="fill health" id="phbar"></div></div></div>
-<div class="meter">OPPONENT HEALTH <span id="eh">100</span>%
-<div class="track"><div class="fill health" id="ehbar"></div></div></div>
+<div id="message"></div>
+
+<div id="intro">
+  <div id="introBox">
+    <h1>LIGHTSABER DUEL</h1>
+    <p>
+      Enter the arena. Face your opponent. Read their attack direction
+      and match it with your guard. Every missed block costs Force.
+    </p>
+    <p>
+      Connect a controller before starting, or use the keyboard controls.
+      A gamepad generally requires the game to run on HTTPS or localhost.
+    </p>
+    <button id="startButton">ENTER THE ARENA</button>
+  </div>
 </div>
 
-<div class="controls">
-<div id="message">Choose an attack or prepare to block.</div>
-<h3>⚔ ATTACK</h3>
-<div class="buttons">
-<button class="attack" onclick="attack('left')">← Left</button>
-<button class="attack" onclick="attack('up')">↑ Overhead</button>
-<button class="attack" onclick="attack('right')">Right →</button>
-</div>
-<h3>🛡 BLOCK</h3>
-<div class="buttons">
-<button class="block" onclick="block('left')">← Left</button>
-<button class="block" onclick="block('up')">↑ Overhead</button>
-<button class="block" onclick="block('right')">Right →</button>
-</div>
-<button id="restart" onclick="restart()">Restart Duel</button>
-<p><small>Correct blocks prevent Force loss. Wrong blocks leave you open.</small></p>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-let playerForce=100,enemyForce=100;
-let playerHealth=100,enemyHealth=100;
-let busy=false,finished=false;
-const $=id=>document.getElementById(id);
-function update(){
- $('pf').textContent=playerForce;$('ef').textContent=enemyForce;
- $('ph').textContent=playerHealth;$('eh').textContent=enemyHealth;
- $('pbar').style.width=playerForce+'%';$('ebar').style.width=enemyForce+'%';
- $('phbar').style.width=playerHealth+'%';$('ehbar').style.width=enemyHealth+'%';
-}
-function say(text){$('message').textContent=text}
-function animateSaber(id,direction){
- const saber=$(id);
- const angles={left:-65,right:65,up:0};
- saber.style.transform='rotate('+angles[direction]+'deg) scale(1.1)';
- setTimeout(()=>saber.style.transform='rotate('+(id==='enemySaber'?28:-28)+'deg)',250);
-}
-function endCheck(){
- if(enemyForce<=0){enemyForce=0;finished=true;say('VICTORY! Your opponent has exhausted their Force.');}
- else if(playerForce<=0){playerForce=0;finished=true;say('DEFEAT! Your Force is exhausted.');}
- update();
-}
-function attack(direction){
- if(busy||finished)return;
- busy=true;
- animateSaber('playerSaber',direction);
- const defended=Math.random()<0.48;
- const enemyBlock=defended?direction:['left','right','up'][Math.floor(Math.random()*3)];
- setTimeout(()=>{
-  if(enemyBlock===direction){
-   say('Your opponent blocked your '+direction+' attack! No Force lost.');
-  }else{
-   enemyForce=Math.max(0,enemyForce-16);
-   $('enemy').classList.add('flash');
-   setTimeout(()=>$('enemy').classList.remove('flash'),180);
-   say('Clean hit! Opponent loses 16 Force.');
+(() => {
+  "use strict";
+
+  // -------------------------------------------------------
+  // SCENE AND CAMERA
+  // -------------------------------------------------------
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x070b14);
+  scene.fog = new THREE.Fog(0x070b14, 22, 75);
+
+  const camera = new THREE.PerspectiveCamera(
+    65, window.innerWidth / window.innerHeight, 0.1, 150
+  );
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  scene.add(new THREE.HemisphereLight(0x9db9e8, 0x17131c, 1.7));
+
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+  keyLight.position.set(-8, 15, 9);
+  keyLight.castShadow = true;
+  scene.add(keyLight);
+
+  const blueLight = new THREE.PointLight(0x168dff, 30, 24);
+  blueLight.position.set(-8, 4, -5);
+  scene.add(blueLight);
+
+  const redLight = new THREE.PointLight(0xff2d20, 25, 24);
+  redLight.position.set(8, 4, -8);
+  scene.add(redLight);
+
+  // -------------------------------------------------------
+  // ARENA
+  // -------------------------------------------------------
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(100, 100),
+    new THREE.MeshStandardMaterial({
+      color: 0x171d29, roughness: 0.9, metalness: 0.25
+    })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.04;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  const grid = new THREE.GridHelper(100, 50, 0x34445a, 0x202b3c);
+  grid.position.y = 0.005;
+  scene.add(grid);
+
+  const arenaRing = new THREE.Mesh(
+    new THREE.RingGeometry(7.7, 8, 96),
+    new THREE.MeshBasicMaterial({
+      color: 0x52718c, side: THREE.DoubleSide
+    })
+  );
+  arenaRing.rotation.x = -Math.PI / 2;
+  arenaRing.position.y = 0.02;
+  scene.add(arenaRing);
+
+  function addPillar(x, z) {
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.45, 0.6, 5, 8),
+      new THREE.MeshStandardMaterial({
+        color: 0x303c4d, metalness: 0.7, roughness: 0.4
+      })
+    );
+    pillar.position.set(x, 2.5, z);
+    pillar.castShadow = true;
+    scene.add(pillar);
+
+    const cap = new THREE.Mesh(
+      new THREE.TorusGeometry(0.48, 0.07, 8, 20),
+      new THREE.MeshStandardMaterial({
+        color: 0x7189a4, emissive: 0x152b48
+      })
+    );
+    cap.position.set(x, 4.8, z);
+    scene.add(cap);
   }
-  update();endCheck();busy=false;
- },250);
-}
-function block(direction){
- if(busy||finished)return;
- busy=true;
- const incoming=['left','right','up'][Math.floor(Math.random()*3)];
- animateSaber('enemySaber',incoming);
- setTimeout(()=>{
-  if(direction===incoming){
-   say('Perfect block! You stopped the '+incoming+' attack. No Force lost.');
-  }else{
-   playerForce=Math.max(0,playerForce-16);
-   $('player').classList.add('flash');
-   setTimeout(()=>$('player').classList.remove('flash'),180);
-   say('Wrong direction! Incoming '+incoming+' attack breaks through. You lose 16 Force.');
+
+  for (const p of [
+    [-11,-11],[11,-11],[-11,11],[11,11],
+    [0,-15],[0,15],[-15,0],[15,0]
+  ]) addPillar(p[0], p[1]);
+
+  // -------------------------------------------------------
+  // FIGHTER CONSTRUCTION
+  // -------------------------------------------------------
+  function makeMaterial(color, metalness = 0.35) {
+    return new THREE.MeshStandardMaterial({
+      color, metalness, roughness: 0.48
+    });
   }
-  update();endCheck();busy=false;
- },250);
-}
-function restart(){
- playerForce=100;enemyForce=100;playerHealth=100;enemyHealth=100;
- busy=false;finished=false;update();
- say('Duel reset. Choose your move.');
-}
-update();
+
+  function createFighter(color, saberColor, isPlayer) {
+    const root = new THREE.Group();
+    scene.add(root);
+
+    const armor = makeMaterial(color, 0.65);
+    const dark = makeMaterial(0x151b25, 0.45);
+    const accent = makeMaterial(isPlayer ? 0x8bbbd8 : 0xa94b43, 0.65);
+
+    function part(parent, geometry, material, x, y, z) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(x,y,z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      parent.add(mesh);
+      return mesh;
+    }
+
+    // Torso
+    part(root, new THREE.CapsuleGeometry(0.43, 0.75, 5, 10),
+      armor, 0, 1.35, 0);
+
+    // Chest plate
+    part(root, new THREE.BoxGeometry(0.72,0.48,0.18),
+      accent, 0,1.65,0.36);
+
+    // Head and helmet
+    part(root, new THREE.SphereGeometry(0.32,16,12),
+      dark, 0,2.25,0);
+
+    part(root, new THREE.BoxGeometry(0.48,0.12,0.48),
+      armor, 0,2.42,0.02);
+
+    // Helmet visor
+    part(root, new THREE.BoxGeometry(0.37,0.07,0.07),
+      makeMaterial(0x0b1018), 0,2.28,0.29);
+
+    // Waist
+    part(root, new THREE.BoxGeometry(0.7,0.22,0.45),
+      dark,0,0.85,0);
+
+    // Legs
+    const legs = [];
+    for (const side of [-1,1]) {
+      const leg = part(root,
+        new THREE.CapsuleGeometry(0.17,0.55,4,8),
+        dark,side*0.2,0.43,0);
+      legs.push(leg);
+    }
+
+    // Shoulder and arms
+    const arms = [];
+    for (const side of [-1,1]) {
+      part(root,new THREE.SphereGeometry(0.23,12,10),
+        armor,side*0.55,1.83,0);
+
+      const arm = new THREE.Group();
+      arm.position.set(side*0.57,1.65,0.04);
+      root.add(arm);
+
+      part(arm,new THREE.CapsuleGeometry(0.13,0.48,4,8),
+        armor,0,-0.28,0);
+
+      part(arm,new THREE.SphereGeometry(0.14,10,8),
+        dark,0,-0.57,0.02);
+      arms.push(arm);
+    }
+
+    // Saber handle and blade are attached to right hand.
+    const weapon = new THREE.Group();
+    weapon.position.set(0,-0.62,0.03);
+    arms[1].add(weapon);
+
+    part(weapon,new THREE.CylinderGeometry(0.075,0.075,0.48,12),
+      makeMaterial(0x9ca8b5,0.9),0,-0.17,0);
+
+    part(weapon,new THREE.CylinderGeometry(0.045,0.045,0.1,12),
+      dark,0,-0.43,0);
+
+    const bladeMaterial = new THREE.MeshStandardMaterial({
+      color: saberColor,
+      emissive: saberColor,
+      emissiveIntensity: 3.2,
+      metalness: 0.2,
+      roughness: 0.2
+    });
+
+    const blade = part(weapon,
+      new THREE.CylinderGeometry(0.055,0.055,2.25,12),
+      bladeMaterial,0,-1.55,0);
+
+    const glow = new THREE.PointLight(saberColor, 5, 5);
+    glow.position.set(0,-1.5,0);
+    weapon.add(glow);
+
+    return {
+      root, arms, legs, weapon, blade, glow,
+      attackTime: 0, attackDirection: "up",
+      attackType: "fast", dodging: 0,
+      force: 100, health: 100,
+      blocking: false, blockDirection: "up",
+      stunned: 0, specialCooldown: 0,
+      walkTime: 0
+    };
+  }
+
+  const player = createFighter(0x263e58, 0x20caff, true);
+  const enemy = createFighter(0x542a2c, 0xff382e, false);
+
+  player.root.position.set(0,0,4);
+  enemy.root.position.set(0,0,-4);
+
+  // -------------------------------------------------------
+  // GAME STATE
+  // -------------------------------------------------------
+  let started = false;
+  let lockedOn = true;
+  let gameOver = false;
+  let messageTimer = 0;
+  let aiTimer = 1.2;
+  let aiAttackDirection = "up";
+  let lastTime = performance.now();
+
+  const $ = id => document.getElementById(id);
+
+  function showMessage(text, duration = 0.65) {
+    $("message").textContent = text;
+    messageTimer = duration;
+  }
+
+  function updateHUD() {
+    $("playerForce").style.width = player.force + "%";
+    $("enemyForce").style.width = enemy.force + "%";
+    $("playerHealth").style.width = player.health + "%";
+    $("enemyHealth").style.width = enemy.health + "%";
+
+    $("guardMode").textContent = player.blocking
+      ? "BLOCKING " + player.blockDirection.toUpperCase()
+      : "READY";
+
+    for (const d of ["up","left","right"]) {
+      $(d).classList.toggle(
+        "active",
+        player.blocking && player.blockDirection === d
+      );
+    }
+
+    $("lockStatus").textContent = lockedOn ? "TARGET LOCKED" : "FREE MOVEMENT";
+  }
+
+  // -------------------------------------------------------
+  // DIRECTIONAL INPUT
+  // -------------------------------------------------------
+  let keyboard = {};
+  let gamepad = null;
+  let attackPressed = false;
+  let heavyPressed = false;
+  let dodgePressed = false;
+  let breakPressed = false;
+  let specialPressed = false;
+  let lockPressed = false;
+
+  window.addEventListener("keydown", e => {
+    keyboard[e.code] = true;
+    if (["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)) {
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener("keyup", e => {
+    keyboard[e.code] = false;
+  });
+
+  function getGamepad() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const pad of pads) if (pad && pad.connected) return pad;
+    return null;
+  }
+
+  function directionFromAxes(x, y, fallback = "up") {
+    if (Math.abs(x) < 0.32 && Math.abs(y) < 0.32) return fallback;
+    if (Math.abs(x) > Math.abs(y)) return x < 0 ? "left" : "right";
+    return y < 0 ? "up" : "up";
+  }
+
+  function readInput() {
+    gamepad = getGamepad();
+
+    let moveX = 0, moveY = 0;
+    let aimX = 0, aimY = 0;
+    let block = false;
+    let fast = false, heavy = false;
+    let dodge = false, guardBreak = false;
+    let special = false, lock = false;
+
+    if (gamepad) {
+      const a = gamepad.axes || [];
+      moveX = Math.abs(a[0] || 0) > 0.14 ? a[0] : 0;
+      moveY = Math.abs(a[1] || 0) > 0.14 ? a[1] : 0;
+      aimX = Math.abs(a[2] || 0) > 0.25 ? a[2] : 0;
+      aimY = Math.abs(a[3] || 0) > 0.25 ? a[3] : 0;
+
+      const b = gamepad.buttons || [];
+      const pressed = i => !!(b[i] && (b[i].pressed || b[i].value > 0.55));
+
+      // Standard Xbox / PlayStation gamepad mapping
+      dodge = pressed(0);       // A / Cross
+      guardBreak = pressed(2);  // X / Square
+      lock = pressed(1);        // B / Circle
+      special = pressed(3);     // Y / Triangle
+      fast = pressed(5);        // RB / R1
+      heavy = pressed(7);       // RT / R2
+      block = pressed(6);       // LT / L2
+    }
+
+    // Keyboard fallback
+    if (keyboard.KeyW) moveY -= 1;
+    if (keyboard.KeyS) moveY += 1;
+    if (keyboard.KeyA) moveX -= 1;
+    if (keyboard.KeyD) moveX += 1;
+
+    if (keyboard.ArrowLeft) aimX = -1;
+    if (keyboard.ArrowRight) aimX = 1;
+    if (keyboard.ArrowUp) aimY = -1;
+
+    block = block || !!keyboard.KeyQ;
+    fast = fast || !!keyboard.KeyJ;
+    heavy = heavy || !!keyboard.KeyK;
+    dodge = dodge || !!keyboard.Space;
+    guardBreak = guardBreak || !!keyboard.KeyE;
+    special = special || !!keyboard.KeyR;
+    lock = lock || !!keyboard.KeyL;
+
+    const direction = directionFromAxes(aimX, aimY, "up");
+
+    // Edge-triggered actions prevent repeated attacks while a button is held.
+    const fastEdge = fast && !attackPressed;
+    const heavyEdge = heavy && !heavyPressed;
+    const dodgeEdge = dodge && !dodgePressed;
+    const breakEdge = guardBreak && !breakPressed;
+    const specialEdge = special && !specialPressed;
+    const lockEdge = lock && !lockPressed;
+
+    attackPressed = fast;
+    heavyPressed = heavy;
+    dodgePressed = dodge;
+    breakPressed = guardBreak;
+    specialPressed = special;
+    lockPressed = lock;
+
+    return {
+      moveX, moveY, direction, block,
+      fastEdge, heavyEdge, dodgeEdge, breakEdge,
+      specialEdge, lockEdge
+    };
+  }
+
+  // -------------------------------------------------------
+  // FACING, MOVEMENT AND COMBAT
+  // -------------------------------------------------------
+  function faceTarget(fighter, target) {
+    const dx = target.root.position.x - fighter.root.position.x;
+    const dz = target.root.position.z - fighter.root.position.z;
+    fighter.root.rotation.y = Math.atan2(dx, dz);
+  }
+
+  function distanceBetween(a,b) {
+    return a.root.position.distanceTo(b.root.position);
+  }
+
+  function startAttack(fighter, direction, type) {
+    if (fighter.attackTime > 0 || fighter.stunned > 0 ||
+        fighter.dodging > 0) return;
+
+    fighter.blocking = false;
+    fighter.attackTime = type === "heavy" ? 0.85 : 0.52;
+    fighter.attackDirection = direction;
+    fighter.attackType = type;
+  }
+
+  function startDodge(fighter, dx, dz) {
+    if (fighter.dodging > 0 || fighter.stunned > 0) return;
+    fighter.dodging = 0.34;
+    fighter.dodgeX = dx;
+    fighter.dodgeZ = dz;
+    fighter.blocking = false;
+  }
+
+  function attemptHit(attacker, defender) {
+    const distance = distanceBetween(attacker, defender);
+    if (distance > 3.15) {
+      showMessage("OUT OF RANGE");
+      return;
+    }
+
+    // A normal saber strike tests the defender's guard.
+    // It drains Force, not Health.
+    const correctBlock =
+      defender.blocking &&
+      defender.blockDirection === attacker.attackDirection;
+
+    if (correctBlock) {
+      defender.force = Math.min(100, defender.force + 4);
+      attacker.force = Math.max(0, attacker.force - 2);
+      showMessage("PERFECT BLOCK");
+      return;
+    }
+
+    defender.force = Math.max(
+      0, defender.force - (attacker.attackType === "heavy" ? 24 : 15)
+    );
+
+    showMessage("FORCE DISRUPTED");
+
+    if (defender.force <= 0) {
+      defender.stunned = 1.2;
+      showMessage("FORCE BROKEN", 1.1);
+    }
+  }
+
+  function guardBreak(attacker, defender) {
+    if (distanceBetween(attacker, defender) > 2.7) {
+      showMessage("OUT OF RANGE");
+      return;
+    }
+
+    if (defender.blocking) {
+      defender.blocking = false;
+      defender.stunned = 0.65;
+      showMessage("GUARD BROKEN");
+    } else {
+      showMessage("GUARD BREAK MISSED");
+    }
+  }
+
+  function useSpecial(fighter, opponent) {
+    if (fighter.specialCooldown > 0 || fighter.force < 25) return;
+    fighter.force -= 25;
+    fighter.specialCooldown = 7;
+    opponent.stunned = Math.max(opponent.stunned, 0.8);
+    showMessage("FORCE PUSH");
+  }
+
+  function updatePlayer(dt, input) {
+    faceTarget(player, enemy);
+
+    player.blocking = input.block && player.stunned <= 0 &&
+      player.attackTime <= 0 && player.dodging <= 0;
+
+    if (player.blocking) player.blockDirection = input.direction;
+
+    if (input.fastEdge) startAttack(player,input.direction,"fast");
+    if (input.heavyEdge) startAttack(player,input.direction,"heavy");
+
+    if (input.dodgeEdge) {
+      const v = new THREE.Vector3(input.moveX,0,-input.moveY);
+      if (v.length() < 0.1) v.set(0,0,1);
+      v.normalize();
+      startDodge(player,v.x,v.z);
+    }
+
+    if (input.breakEdge) guardBreak(player,enemy);
+    if (input.specialEdge) useSpecial(player,enemy);
+
+    if (input.lockEdge) lockedOn = !lockedOn;
+
+    if (player.stunned <= 0 && player.dodging <= 0 &&
+        player.attackTime <= 0) {
+      const forward = new THREE.Vector3(
+        -Math.sin(player.root.rotation.y),0,
+        -Math.cos(player.root.rotation.y)
+      );
+      const right = new THREE.Vector3(
+        Math.cos(player.root.rotation.y),0,
+        -Math.sin(player.root.rotation.y)
+      );
+
+      const move = new THREE.Vector3()
+        .addScaledVector(right,input.moveX)
+        .addScaledVector(forward,-input.moveY);
+
+      if (move.length() > 1) move.normalize();
+
+      const speed = player.blocking ? 2.1 : 4.2;
+      player.root.position.addScaledVector(move, speed * dt);
+      if (move.length() > 0.05) player.walkTime += dt * 9;
+    }
+
+    if (player.dodging > 0) {
+      player.root.position.x += player.dodgeX * 10 * dt;
+      player.root.position.z += player.dodgeZ * 10 * dt;
+    }
+  }
+
+  function updateAI(dt) {
+    faceTarget(enemy,player);
+
+    if (enemy.attackTime > 0 || enemy.stunned > 0 ||
+        enemy.dodging > 0) return;
+
+    const distance = distanceBetween(enemy,player);
+    aiTimer -= dt;
+
+    if (distance > 3.0) {
+      const toward = new THREE.Vector3(
+        player.root.position.x - enemy.root.position.x,
+        0,
+        player.root.position.z - enemy.root.position.z
+      ).normalize();
+
+      enemy.root.position.addScaledVector(toward, 2.0 * dt);
+      return;
+    }
+
+    if (aiTimer <= 0) {
+      const choices = ["up","left","right"];
+      aiAttackDirection = choices[Math.floor(Math.random()*choices.length)];
+
+      // Sometimes the AI waits or changes its approach.
+      if (Math.random() < 0.22) {
+        enemy.blocking = true;
+        enemy.blockDirection = choices[Math.floor(Math.random()*3)];
+        aiTimer = 0.8;
+      } else {
+        enemy.blocking = false;
+        startAttack(
+          enemy,
+          aiAttackDirection,
+          Math.random() < 0.3 ? "heavy" : "fast"
+        );
+        aiTimer = 1.0 + Math.random()*0.9;
+      }
+    }
+  }
+
+  // -------------------------------------------------------
+  // ANIMATION AND HIT TIMING
+  // -------------------------------------------------------
+  function updateFighter(fighter, opponent, dt, isPlayer) {
+    fighter.attackTime = Math.max(0,fighter.attackTime-dt);
+    fighter.dodging = Math.max(0,fighter.dodging-dt);
+    fighter.stunned = Math.max(0,fighter.stunned-dt);
+    fighter.specialCooldown = Math.max(0,fighter.specialCooldown-dt);
+
+    if (fighter.attackTime > 0) {
+      const total = fighter.attackType === "heavy" ? 0.85 : 0.52;
+      const progress = 1 - fighter.attackTime / total;
+
+      // Swing the weapon across the chosen attack lane.
+      let angle = 0;
+      if (fighter.attackDirection === "left") angle = -1;
+      if (fighter.attackDirection === "right") angle = 1;
+      if (fighter.attackDirection === "up") angle = 0.4;
+
+      fighter.arms[1].rotation.x =
+        -0.7 + Math.sin(progress * Math.PI) * 0.7;
+      fighter.arms[1].rotation.z =
+        -angle * Math.sin(progress * Math.PI) * 1.2;
+
+      const activeAt = fighter.attackType === "heavy" ? 0.45 : 0.28;
+      if (fighter.attackTime <= activeAt &&
+          fighter.attackTime > activeAt - dt) {
+        attemptHit(fighter,opponent);
+      }
+    } else {
+      fighter.arms[1].rotation.x = THREE.MathUtils.damp(
+        fighter.arms[1].rotation.x,0,8,dt
+      );
+      fighter.arms[1].rotation.z = THREE.MathUtils.damp(
+        fighter.arms[1].rotation.z,0,8,dt
+      );
+    }
+
+    if (fighter.blocking) {
+      const angle = fighter.blockDirection === "left" ? -0.65 :
+        fighter.blockDirection === "right" ? 0.65 : 0;
+      fighter.arms[1].rotation.x = -0.5;
+      fighter.arms[1].rotation.z = angle;
+      fighter.arms[0].rotation.x = -0.45;
+    } else {
+      fighter.arms[0].rotation.x = THREE.MathUtils.damp(
+        fighter.arms[0].rotation.x,0,8,dt
+      );
+    }
+
+    if (fighter.stunned > 0) {
+      fighter.root.rotation.z = Math.sin(performance.now()*0.02)*0.08;
+    } else {
+      fighter.root.rotation.z = THREE.MathUtils.damp(
+        fighter.root.rotation.z,0,8,dt
+      );
+    }
+
+    if (fighter.dodging > 0) {
+      fighter.root.rotation.z = fighter.dodgeX * 0.25;
+    }
+
+    const walking = Math.abs(fighter.walkTime) > 0;
+    if (walking) {
+      fighter.legs[0].rotation.x = Math.sin(fighter.walkTime)*0.35;
+      fighter.legs[1].rotation.x = -Math.sin(fighter.walkTime)*0.35;
+    } else {
+      fighter.legs[0].rotation.x = 0;
+      fighter.legs[1].rotation.x = 0;
+    }
+  }
+
+  // -------------------------------------------------------
+  // CAMERA
+  // -------------------------------------------------------
+  const cameraOffset = new THREE.Vector3(0,4.2,7.5);
+  const lookPoint = new THREE.Vector3();
+
+  function updateCamera(dt) {
+    const target = player.root.position.clone();
+
+    const behind = new THREE.Vector3(
+      Math.sin(player.root.rotation.y),
+      0,
+      Math.cos(player.root.rotation.y)
+    );
+
+    const desired = target.clone()
+      .addScaledVector(behind,6.5)
+      .add(new THREE.Vector3(0,3.3,0));
+
+    camera.position.lerp(desired,1-Math.exp(-4*dt));
+
+    lookPoint.copy(target);
+    lookPoint.y = 1.45;
+    lookPoint.addScaledVector(
+      new THREE.Vector3(
+        enemy.root.position.x-player.root.position.x,
+        0,
+        enemy.root.position.z-player.root.position.z
+      ), lockedOn ? 0.32 : 0
+    );
+
+    camera.lookAt(lookPoint);
+  }
+
+  // -------------------------------------------------------
+  // ARENA BOUNDARIES AND GAME FLOW
+  // -------------------------------------------------------
+  function clampFighter(fighter) {
+    fighter.root.position.x = THREE.MathUtils.clamp(
+      fighter.root.position.x,-13,13
+    );
+    fighter.root.position.z = THREE.MathUtils.clamp(
+      fighter.root.position.z,-13,13
+    );
+  }
+
+  function checkGameOver() {
+    if (gameOver) return;
+
+    if (player.health <= 0 || player.force <= 0 && player.stunned > 0.1) {
+      gameOver = true;
+      showMessage("DEFEAT",10);
+    }
+
+    if (enemy.health <= 0 || enemy.force <= 0 && enemy.stunned > 0.1) {
+      gameOver = true;
+      showMessage("VICTORY",10);
+    }
+  }
+
+  // -------------------------------------------------------
+  // MAIN LOOP
+  // -------------------------------------------------------
+  function animate(now) {
+    requestAnimationFrame(animate);
+
+    const dt = Math.min((now-lastTime)/1000,0.04);
+    lastTime = now;
+
+    if (started && !gameOver) {
+      const input = readInput();
+
+      updatePlayer(dt,input);
+      updateAI(dt);
+
+      updateFighter(player,enemy,dt,true);
+      updateFighter(enemy,player,dt,false);
+
+      clampFighter(player);
+      clampFighter(enemy);
+
+      // Keep fighters from occupying the same space.
+      const delta = player.root.position.clone()
+        .sub(enemy.root.position);
+      if (delta.length() < 1.15) {
+        delta.normalize();
+        player.root.position.addScaledVector(delta,0.015);
+        enemy.root.position.addScaledVector(delta,-0.015);
+      }
+
+      updateCamera(dt);
+      updateHUD();
+      checkGameOver();
+
+      if (messageTimer > 0) {
+        messageTimer -= dt;
+        if (messageTimer <= 0) $("message").textContent = "";
+      }
+    } else {
+      updateCamera(dt);
+    }
+
+    renderer.render(scene,camera);
+  }
+
+  // -------------------------------------------------------
+  // START AND RESIZE
+  // -------------------------------------------------------
+  $("startButton").addEventListener("click",() => {
+    started = true;
+    $("intro").style.display = "none";
+    showMessage("ENGAGE",1.2);
+    player.root.position.set(0,0,4);
+    enemy.root.position.set(0,0,-4);
+  });
+
+  window.addEventListener("resize",() => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+
+  window.addEventListener("gamepadconnected",() => {
+    showMessage("CONTROLLER CONNECTED",1.4);
+  });
+
+  updateHUD();
+  updateCamera(1);
+  requestAnimationFrame(animate);
+})();
 </script>
 </body>
 </html>
